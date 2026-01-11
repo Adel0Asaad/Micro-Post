@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// MODELS - Question 1.3
+// ============================================
+
+// User Model - Represents a user in the system
+model User {
+  id                                    String    @id @default(cuid())
+  email                                 String    @unique
+  password  String   // Hashed password
+  name                                  String
+  createdAt                             DateTime  @default(now())
+  updatedAt                             DateTime  @updatedAt
+
+  // Relationship: A user can have many posts (one-to-many)
+  posts                                 Post[]
+
+  @@map("users")
+}
+
+// Post Model - Represents a micro-post created by a user
+model Post {
+  id                                                                              String             @id @default(cuid())
+  content   String   // Text content of the post (max 280 characters recommended)
+  createdAt                                                                       DateTime           @default(now())
+  updatedAt                                                                       DateTime           @updatedAt
+
+  // Relationship: Each post belongs to one user (many-to-one)
+  userId                                                                          String
+  user                                                                            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Translations for the post (one-to-many) - For Question 1.4
+  translations                                                                    PostTranslation[]
+
+  @@map("posts")
+}
+
+// PostTranslation Model - For Question 1.4 (Translation capabilities)
+model PostTranslation {
+  id                                                                        String    @id @default(cuid())
+  languageCode String   // ISO 639-1 language code (e.g., "es", "fr", "zh")
+  languageName String   // Human readable name (e.g., "Spanish", "French")
+  content      String   // Translated content
+  createdAt                                                                 DateTime  @default(now())
+
+  // Relationship: Each translation belongs to one post
+  postId                                                                    String
+  post                                                                      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // Unique constraint: One translation per language per post
+  @@unique([postId,                                                         languageCode])
+  @@map("post_translations")
+}
+
+// SMSImport Model - For Question 1.4 (Import capabilities)
+model SMSImport {
+  id                                                                         String    @id @default(cuid())
+  phoneNumber   String   // The other person's phone number
+  messageText   String   // SMS content
+  sentAt        DateTime // When the SMS was sent
+  isFromUser    Boolean  // true if sent by user, false if received
+  importedAt                                                                 DateTime  @default(now())
+  convertedToPostId String? // If converted to a post, reference to the post
+
+  // User who imported the SMS
+  userId                                                                     String
+
+  @@map("sms_imports")
+}

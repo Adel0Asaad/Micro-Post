@@ -23,7 +23,7 @@ export function NavbarWrapper() {
         const res = await fetch('/next-proxy/auth/session');
         if (res.ok) {
           const data = await res.json();
-          setUser(data.user);
+          setUser(data.body?.user || null);
         } else {
           setUser(null);
         }

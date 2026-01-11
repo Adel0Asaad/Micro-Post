@@ -56,7 +56,7 @@ export default function UserPostsPage({
         return;
       }
       const sessionData = await sessionRes.json();
-      setCurrentUser(sessionData.user);
+      setCurrentUser(sessionData.body?.user || null);
 
       // Fetch user's posts
       const postsRes = await fetch(
@@ -64,8 +64,8 @@ export default function UserPostsPage({
       );
       if (postsRes.ok) {
         const postsData = await postsRes.json();
-        setProfileUser(postsData.user);
-        setPosts(postsData.posts);
+        setProfileUser(postsData.body?.user || null);
+        setPosts(postsData.body?.posts || []);
       } else if (postsRes.status === 404) {
         setError(t('errors.notFound'));
       }
@@ -87,9 +87,9 @@ export default function UserPostsPage({
         method: 'DELETE',
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || t('posts.delete.error'));
+        throw new Error(data.body?.error || t('posts.delete.error'));
       }
 
       setPosts((prev) => prev.filter((p) => p.id !== postId));

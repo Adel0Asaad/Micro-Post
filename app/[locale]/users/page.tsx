@@ -36,7 +36,7 @@ export default function UsersPage() {
       const usersRes = await fetch('/next-proxy/users');
       if (usersRes.ok) {
         const usersData = await usersRes.json();
-        setUsers(usersData.users);
+        setUsers(usersData.body?.users || []);
       }
     } catch {
       setError(t('users.error'));

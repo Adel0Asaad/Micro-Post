@@ -1,20 +1,11 @@
 // ============================================
-// Auth Logout API Route - Controller Layer
+// Auth Logout Proxy Route
 // ============================================
-// RESTful Endpoint: POST /next-proxy/auth/logout
+// Proxies to Express backend: POST /api/auth/logout
 
-import { NextResponse } from 'next/server';
-import { clearAuthCookie } from '@/lib/auth';
+import { NextRequest } from 'next/server';
+import { proxyToBackend } from '@/lib/proxy';
 
-export async function POST() {
-  try {
-    await clearAuthCookie();
-    return NextResponse.json({ message: 'Logout successful' });
-  } catch (error) {
-    console.error('Logout error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+export async function POST(request: NextRequest) {
+  return proxyToBackend(request, '/api/auth/logout');
 }

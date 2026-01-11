@@ -49,13 +49,13 @@ export default function FeedPage() {
         return;
       }
       const sessionData = await sessionRes.json();
-      setUser(sessionData.user);
+      setUser(sessionData.body?.user || null);
 
       // Fetch posts
       const postsRes = await fetch('/next-proxy/posts');
       if (postsRes.ok) {
         const postsData = await postsRes.json();
-        setPosts(postsData.posts);
+        setPosts(postsData.body?.posts || []);
       }
     } catch {
       setError(t('feed.error'));
@@ -75,9 +75,9 @@ export default function FeedPage() {
       body: JSON.stringify({ content }),
     });
 
+    const data = await response.json();
     if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || t('posts.create.error.failed'));
+      throw new Error(data.body?.error || t('posts.create.error.failed'));
     }
 
     // Refresh posts
@@ -91,9 +91,9 @@ export default function FeedPage() {
         method: 'DELETE',
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || t('posts.delete.error'));
+        throw new Error(data.body?.error || t('posts.delete.error'));
       }
 
       // Remove post from local state

@@ -1,31 +1,11 @@
 // ============================================
-// Auth Session API Route - Controller Layer
+// Auth Session Proxy Route
 // ============================================
-// RESTful Endpoint: GET /next-proxy/auth/session
+// Proxies to Express backend: GET /api/auth/session
 
-import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { NextRequest } from 'next/server';
+import { proxyToBackend } from '@/lib/proxy';
 
-export async function GET() {
-  try {
-    const session = await getSession();
-
-    if (!session) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
-    return NextResponse.json({
-      user: {
-        id: session.userId,
-        email: session.email,
-        name: session.name,
-      },
-    });
-  } catch (error) {
-    console.error('Session error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+export async function GET(request: NextRequest) {
+  return proxyToBackend(request, '/api/auth/session');
 }

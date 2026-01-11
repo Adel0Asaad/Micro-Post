@@ -18,9 +18,9 @@ export default function LoginPage() {
       body: JSON.stringify({ email, password }),
     });
 
+    const data = await response.json();
     if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || 'Login failed');
+      throw new Error(data.body?.error || 'Login failed');
     }
 
     router.push(`/${locale}/feed`);
@@ -38,9 +38,9 @@ export default function LoginPage() {
       body: JSON.stringify({ name, email, password }),
     });
 
+    const data = await response.json();
     if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || 'Registration failed');
+      throw new Error(data.body?.error || 'Registration failed');
     }
 
     router.push(`/${locale}/feed`);

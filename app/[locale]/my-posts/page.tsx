@@ -49,15 +49,16 @@ export default function MyPostsPage() {
         return;
       }
       const sessionData = await sessionRes.json();
-      setUser(sessionData.user);
+      const currentUser = sessionData.body?.user;
+      setUser(currentUser || null);
 
       // Fetch user's posts
       const postsRes = await fetch(
-        `/next-proxy/users/${sessionData.user.id}/posts`
+        `/next-proxy/users/${currentUser?.id}/posts`
       );
       if (postsRes.ok) {
         const postsData = await postsRes.json();
-        setPosts(postsData.posts);
+        setPosts(postsData.body?.posts || []);
       }
     } catch {
       setError(t('myPosts.error'));
@@ -77,9 +78,9 @@ export default function MyPostsPage() {
       body: JSON.stringify({ content }),
     });
 
+    const data = await response.json();
     if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || t('posts.create.error.failed'));
+      throw new Error(data.body?.error || t('posts.create.error.failed'));
     }
 
     // Refresh posts
@@ -93,9 +94,9 @@ export default function MyPostsPage() {
         method: 'DELETE',
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || t('posts.delete.error'));
+        throw new Error(data.body?.error || t('posts.delete.error'));
       }
 
       // Remove post from local state

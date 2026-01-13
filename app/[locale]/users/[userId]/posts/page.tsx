@@ -1,34 +1,15 @@
 'use client';
 
 import React, { useEffect, useState, use, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { PageContainer } from '@/components/layout';
 import { PostList } from '@/components/posts';
 import { Alert, Avatar, Button } from '@/components/ui';
 import { useTranslations } from '@/lib/i18n';
-
-interface Post {
-  id: string;
-  content: string;
-  createdAt: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  translations?: Array<{
-    languageCode: string;
-    languageName: string;
-    content: string;
-  }>;
-}
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+import { useAuth } from '@/lib/useAuth';
+import { apiFetch } from '@/lib/api';
+import type { Post, User, UserPostsResponse, ApiErrorBody } from '@/types';
 
 export default function UserPostsPage({
   params,
@@ -36,60 +17,54 @@ export default function UserPostsPage({
   params: Promise<{ userId: string; locale: string }>;
 }) {
   const resolvedParams = use(params);
-  const router = useRouter();
   const routeParams = useParams();
   const locale = routeParams.locale as string;
   const { t } = useTranslations();
+  const { user: currentUser, isLoading: authLoading } = useAuth({
+    required: true,
+  });
   const [posts, setPosts] = useState<Post[]>([]);
   const [profileUser, setProfileUser] = useState<User | null>(null);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      // Fetch session
-      const sessionRes = await fetch('/next-proxy/auth/session');
-      if (!sessionRes.ok) {
-        router.push(`/${locale}/login`);
-        return;
-      }
-      const sessionData = await sessionRes.json();
-      setCurrentUser(sessionData.body?.user || null);
-
-      // Fetch user's posts
-      const postsRes = await fetch(
+      const postsData = await apiFetch<UserPostsResponse>(
         `/next-proxy/users/${resolvedParams.userId}/posts`
       );
-      if (postsRes.ok) {
-        const postsData = await postsRes.json();
+
+      if (postsData.headers.status === 404) {
+        setError(t('errors.notFound'));
+      } else {
         setProfileUser(postsData.body?.user || null);
         setPosts(postsData.body?.posts || []);
-      } else if (postsRes.status === 404) {
-        setError(t('errors.notFound'));
       }
     } catch {
       setError(t('users.posts.error'));
     } finally {
       setIsLoading(false);
     }
-  }, [router, locale, resolvedParams.userId, t]);
+  }, [resolvedParams.userId, t]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!authLoading) {
+      fetchData();
+    }
+  }, [authLoading, fetchData]);
 
   const handleDeletePost = async (postId: string) => {
     setDeletingPostId(postId);
     try {
-      const response = await fetch(`/next-proxy/posts/${postId}`, {
+      const response = await apiFetch(`/next-proxy/posts/${postId}`, {
         method: 'DELETE',
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.body?.error || t('posts.delete.error'));
+      if (response.headers.status >= 400) {
+        throw new Error(
+          (response.body as ApiErrorBody)?.error || t('posts.delete.error')
+        );
       }
 
       setPosts((prev) => prev.filter((p) => p.id !== postId));
@@ -100,7 +75,7 @@ export default function UserPostsPage({
     }
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <PageContainer>
         <div className='flex justify-center py-12'>

@@ -4,14 +4,10 @@ import React from 'react';
 import Link from 'next/link';
 import { Card, Avatar, Button } from '@/components/ui';
 import { useLocale, useTranslations } from '@/lib/i18n';
+import type { User } from '@/types';
 
 interface UserCardProps {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    createdAt?: string;
-  };
+  user: User;
   showViewPosts?: boolean;
 }
 

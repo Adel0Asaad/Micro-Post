@@ -24,7 +24,7 @@ This document provides comprehensive answers to all questions from the Siemens t
 
 This solution implements a micro-posting web application with the following features:
 
-- ✅ Web application with data storage (SQLite via Prisma)
+- ✅ Web application with external backend API (via Next.js proxy)
 - ✅ MVC architectural pattern
 - ✅ RESTful API architecture
 - ✅ User login with email and password
@@ -71,11 +71,11 @@ DELETE /api/posts/:id       → Delete a post
 
 **MVC (Model-View-Controller)** is an architectural pattern that separates an application into three interconnected components:
 
-| Component      | Responsibility                                  | Implementation in this Project                     |
-| -------------- | ----------------------------------------------- | -------------------------------------------------- |
-| **Model**      | Data logic, database operations, business rules | `lib/models.ts`, `prisma/schema.prisma`            |
-| **View**       | User interface, presentation layer              | React components in `components/`, pages in `app/` |
-| **Controller** | Handles requests, orchestrates Model and View   | API routes in `app/api/`                           |
+| Component      | Responsibility                                | Implementation in this Project                     |
+| -------------- | --------------------------------------------- | -------------------------------------------------- |
+| **Model**      | Data logic, API communication, business rules | External backend API via `app/next-proxy/`         |
+| **View**       | User interface, presentation layer            | React components in `components/`, pages in `app/` |
+| **Controller** | Handles requests, orchestrates Model and View | API routes in `app/api/`                           |
 
 **Flow:**
 

@@ -3,22 +3,7 @@
 import React from 'react';
 import { PostCard } from './PostCard';
 import { useTranslations } from '@/lib/i18n';
-
-interface Post {
-  id: string;
-  content: string;
-  createdAt: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  translations?: Array<{
-    languageCode: string;
-    languageName: string;
-    content: string;
-  }>;
-}
+import type { Post } from '@/types';
 
 interface PostListProps {
   posts: Post[];

@@ -3,23 +3,10 @@
 import React from 'react';
 import { Card, Avatar, Button } from '@/components/ui';
 import { useTranslations } from '@/lib/i18n';
+import type { Post } from '@/types';
 
 interface PostCardProps {
-  post: {
-    id: string;
-    content: string;
-    createdAt: string;
-    user: {
-      id: string;
-      name: string;
-      email: string;
-    };
-    translations?: Array<{
-      languageCode: string;
-      languageName: string;
-      content: string;
-    }>;
-  };
+  post: Post;
   currentUserId?: string;
   onDelete?: (postId: string) => void;
   isDeleting?: boolean;

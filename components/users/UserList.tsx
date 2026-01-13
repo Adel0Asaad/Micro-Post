@@ -2,13 +2,7 @@
 
 import React from 'react';
 import { UserCard } from './UserCard';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  createdAt?: string;
-}
+import type { User } from '@/types';
 
 interface UserListProps {
   users: User[];

@@ -1,55 +1,39 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
 import { PageContainer } from '@/components/layout';
 import { UserList } from '@/components/users';
 import { Alert } from '@/components/ui';
 import { useTranslations } from '@/lib/i18n';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  createdAt?: string;
-}
+import { useAuth } from '@/lib/useAuth';
+import { apiFetch } from '@/lib/api';
+import type { User, UsersResponse } from '@/types';
 
 export default function UsersPage() {
-  const router = useRouter();
-  const params = useParams();
-  const locale = params.locale as string;
   const { t } = useTranslations();
+  const { isLoading: authLoading } = useAuth({ required: true });
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
+  const fetchUsers = useCallback(async () => {
     try {
-      // Check session
-      const sessionRes = await fetch('/next-proxy/auth/session');
-      if (!sessionRes.ok) {
-        router.push(`/${locale}/login`);
-        return;
-      }
-
-      // Fetch users
-      const usersRes = await fetch('/next-proxy/users');
-      if (usersRes.ok) {
-        const usersData = await usersRes.json();
-        setUsers(usersData.body?.users || []);
-      }
+      const usersData = await apiFetch<UsersResponse>('/next-proxy/users');
+      setUsers(usersData.body?.users || []);
     } catch {
       setError(t('users.error'));
     } finally {
       setIsLoading(false);
     }
-  }, [router, locale, t]);
+  }, [t]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!authLoading) {
+      fetchUsers();
+    }
+  }, [authLoading, fetchUsers]);
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <PageContainer>
         <div className='flex justify-center py-12'>

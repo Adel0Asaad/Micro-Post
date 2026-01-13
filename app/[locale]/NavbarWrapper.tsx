@@ -1,44 +1,19 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Navbar } from '@/components/layout';
 import { useLocale } from '@/lib/i18n';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+import { useAuth } from '@/lib/useAuth';
 
 export function NavbarWrapper() {
   const router = useRouter();
   const pathname = usePathname();
   const { locale } = useLocale();
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const res = await fetch('/next-proxy/auth/session');
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.body?.user || null);
-        } else {
-          setUser(null);
-        }
-      } catch {
-        setUser(null);
-      }
-    };
-
-    fetchSession();
-  }, [pathname]); // Re-fetch session when route changes
+  const { user, logout } = useAuth();
 
   const handleLogout = async () => {
-    await fetch('/next-proxy/auth/logout', { method: 'POST' });
-    setUser(null);
-    router.push(`/${locale}/login`);
+    await logout();
     router.refresh();
   };
 

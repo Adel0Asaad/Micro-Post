@@ -5,16 +5,12 @@
 // the standardized response format
 
 import { NextRequest, NextResponse } from 'next/server';
+import type { BackendResponse } from '@/types';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://127.0.0.1:3000';
+const BACKEND_URL = process.env.BACKEND_URL;
 
-export interface BackendResponse<T = Record<string, unknown>> {
-  headers: {
-    status: number;
-    description: string;
-  };
-  body: T;
-}
+// Re-export for backwards compatibility
+export type { BackendResponse } from '@/types';
 
 /**
  * Proxy a request to the Express backend
@@ -29,6 +25,7 @@ export async function proxyToBackend(
   }
 ): Promise<NextResponse> {
   try {
+    if (!BACKEND_URL) throw new Error('BACKEND_URL is not defined');
     const method = options?.method || request.method;
     const cookieHeader = request.headers.get('cookie') || '';
 
@@ -49,7 +46,7 @@ export async function proxyToBackend(
         const body = await request.json();
         fetchOptions.body = JSON.stringify(body);
       } catch {
-        // No body, that's fine
+        // No body, that's fine (in case of logout for example, we POST but we do not have a body.)
       }
     }
 

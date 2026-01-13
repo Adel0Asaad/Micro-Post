@@ -39,7 +39,12 @@ export default function UserPostsPage({
         setError(t('errors.notFound'));
       } else {
         setProfileUser(postsData.body?.user || null);
-        setPosts(postsData.body?.posts || []);
+        setPosts(
+          postsData.body?.posts?.map?.((post) => ({
+            ...post,
+            user: postsData.body?.user,
+          })) || []
+        );
       }
     } catch {
       setError(t('users.posts.error'));

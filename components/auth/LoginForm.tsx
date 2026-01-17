@@ -38,7 +38,7 @@ export function LoginForm({ onSubmit, onSwitchToRegister }: LoginFormProps) {
       await onSubmit(email, password);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : t('auth.login.error.invalid')
+        err instanceof Error ? err.message : t('auth.login.error.invalid'),
       );
     } finally {
       setIsSubmitting(false);
@@ -86,7 +86,7 @@ export function LoginForm({ onSubmit, onSwitchToRegister }: LoginFormProps) {
             <button
               type='button'
               onClick={onSwitchToRegister}
-              className='text-text-link hover:text-text-link-hover hover:underline font-medium'
+              className='text-text-link hover:text-text-link-hover hover:underline font-medium cursor-pointer'
             >
               {t('auth.login.registerLink')}
             </button>

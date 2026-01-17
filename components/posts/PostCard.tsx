@@ -11,6 +11,7 @@ interface PostCardProps {
   post: Post;
   currentUserId?: string;
   onDelete?: (postId: string) => void;
+  onEdit?: (postId: string, newContent: string) => void;
   isDeleting?: boolean;
   showTranslations?: boolean;
   selectedLanguage?: string;
@@ -23,6 +24,7 @@ export function PostCard({
   post,
   currentUserId,
   onDelete,
+  onEdit,
   isDeleting = false,
   showTranslations = false,
   selectedLanguage,
@@ -52,13 +54,18 @@ export function PostCard({
   const [showRepliesList, setShowRepliesList] = useState(false);
   const [isLoadingReplies, setIsLoadingReplies] = useState(false);
   const [repliesCount, setRepliesCount] = useState(post.repliesCount || 0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(post.content);
+  const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [currentContent, setCurrentContent] = useState(post.content);
 
   // Get translated content if available
   const displayContent =
     selectedLanguage && post.translations
       ? post.translations.find((tr) => tr.languageCode === selectedLanguage)
-          ?.content || post.content
-      : post.content;
+          ?.content || currentContent
+      : currentContent;
 
   const handleLikeToggle = async () => {
     if (isLiking) return;
@@ -89,6 +96,21 @@ export function PostCard({
       console.error('Failed to toggle like:', error);
     } finally {
       setIsLiking(false);
+    }
+  };
+
+  const refetchReplies = async () => {
+    try {
+      const response = await apiFetch<{ posts?: Post[]; replies?: Post[] }>(
+        `/next-proxy/posts/${post.id}/replies`,
+      );
+      if (response.headers.status < 400) {
+        const repliesData = response.body?.replies || [];
+        setReplies(repliesData);
+        setRepliesCount(repliesData.length);
+      }
+    } catch (error) {
+      console.error('Failed to refetch replies:', error);
     }
   };
 
@@ -142,17 +164,16 @@ export function PostCard({
       setShowReplyForm(false);
       setRepliesCount((prev) => prev + 1);
 
-      // Refresh replies if they're visible
-      if (showRepliesList) {
-        const repliesResponse = await apiFetch<{
-          posts?: Post[];
-          replies?: Post[];
-        }>(`/next-proxy/posts/${post.id}/replies`);
-        if (repliesResponse.headers.status < 400) {
-          const repliesData =
-            repliesResponse.body?.replies || repliesResponse.body?.posts || [];
-          setReplies(repliesData);
-        }
+      // Always refresh and show replies after creating a reply
+      const repliesResponse = await apiFetch<{
+        posts?: Post[];
+        replies?: Post[];
+      }>(`/next-proxy/posts/${post.id}/replies`);
+      if (repliesResponse.headers.status < 400) {
+        const repliesData =
+          repliesResponse.body?.replies || repliesResponse.body?.posts || [];
+        setReplies(repliesData);
+        setShowRepliesList(true);
       }
     } catch (err) {
       setReplyError(
@@ -161,6 +182,41 @@ export function PostCard({
     } finally {
       setIsSubmittingReply(false);
     }
+  };
+
+  const handleSubmitEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editContent.trim() || isSubmittingEdit) return;
+
+    setIsSubmittingEdit(true);
+    setEditError(null);
+
+    try {
+      const response = await apiFetch(`/next-proxy/posts/${post.id}`, {
+        method: 'PUT',
+        body: { content: editContent.trim() },
+      });
+
+      if (response.headers.status >= 400) {
+        throw new Error(
+          (response.body as ApiErrorBody)?.error || t('posts.edit.error'),
+        );
+      }
+
+      setCurrentContent(editContent.trim());
+      setIsEditing(false);
+      onEdit?.(post.id, editContent.trim());
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : t('posts.edit.error'));
+    } finally {
+      setIsSubmittingEdit(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent(currentContent);
+    setEditError(null);
   };
 
   return (
@@ -180,7 +236,7 @@ export function PostCard({
             <div className='flex items-center gap-2 min-w-0'>
               <Link
                 href={`/${locale}/users/${post.user.id}/posts`}
-                className='hover:underline'
+                className='hover:underline cursor-pointer'
               >
                 <span className='font-semibold text-text-primary truncate'>
                   {post.user.name}
@@ -190,14 +246,84 @@ export function PostCard({
                 @{post.user.email.split('@')[0]}
               </span>
             </div>
-            <span className='text-text-tertiary text-sm whitespace-nowrap'>
-              {formattedDate}
-            </span>
+            <div className='flex items-center gap-2'>
+              {isOwner && (
+                <button
+                  onClick={() => {
+                    if (!isEditing) {
+                      setIsEditing(true);
+                      setEditContent(currentContent);
+                    } else {
+                      handleCancelEdit();
+                    }
+                  }}
+                  className='text-warning-800 hover:text-warning-500 transition-colors cursor-pointer'
+                  aria-label={t('posts.edit.button')}
+                  title={t('posts.edit.button')}
+                >
+                  <svg
+                    className='w-4 h-4'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z'
+                    />
+                  </svg>
+                </button>
+              )}
+              <span className='text-text-tertiary text-sm whitespace-nowrap'>
+                {formattedDate}
+              </span>
+            </div>
           </div>
 
-          <p className='mt-2 text-text-secondary whitespace-pre-wrap break-words'>
-            {displayContent}
-          </p>
+          {/* Post content or edit form */}
+          {isEditing ? (
+            <form onSubmit={handleSubmitEdit} className='mt-2'>
+              <TextArea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                rows={3}
+                className='mb-2'
+              />
+              {editError && (
+                <Alert
+                  type='error'
+                  className='mb-2'
+                  onClose={() => setEditError(null)}
+                >
+                  {editError}
+                </Alert>
+              )}
+              <div className='flex justify-end gap-2'>
+                <Button
+                  type='button'
+                  variant='secondary'
+                  size='sm'
+                  onClick={handleCancelEdit}
+                >
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  type='submit'
+                  size='sm'
+                  isLoading={isSubmittingEdit}
+                  disabled={!editContent.trim()}
+                >
+                  {t('posts.edit.submit')}
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <p className='mt-2 text-text-secondary whitespace-pre-wrap break-words'>
+              {displayContent}
+            </p>
+          )}
 
           {/* Translation selector */}
           {showTranslations &&
@@ -210,7 +336,7 @@ export function PostCard({
                 <select
                   value={selectedLanguage || ''}
                   onChange={(e) => onLanguageChange?.(e.target.value)}
-                  className='text-sm border border-border-medium rounded px-2 py-1 bg-surface-elevated text-text-primary'
+                  className='text-sm border border-border-medium rounded px-2 py-1 bg-surface-elevated text-text-primary cursor-pointer'
                 >
                   <option value=''>{t('posts.translation.original')}</option>
                   {post.translations.map((tr) => (
@@ -223,43 +349,22 @@ export function PostCard({
             )}
 
           {/* Action buttons */}
-          <div className='mt-3 flex items-center gap-4'>
-            {/* Like button */}
-            <button
-              onClick={handleLikeToggle}
-              disabled={isLiking}
-              className={`flex items-center gap-1 text-sm transition-colors ${
-                isLiked
-                  ? 'text-danger-500 hover:text-danger-600'
-                  : 'text-text-tertiary hover:text-danger-500'
-              } ${isLiking ? 'opacity-50 cursor-not-allowed' : ''}`}
-              aria-label={isLiked ? t('posts.unlike') : t('posts.like')}
-            >
-              <svg
-                className='w-5 h-5'
-                fill={isLiked ? 'currentColor' : 'none'}
-                stroke='currentColor'
-                viewBox='0 0 24 24'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z'
-                />
-              </svg>
-              <span>{likesCount}</span>
-            </button>
-
-            {/* Reply button */}
-            {showReplies && (
+          {!isEditing && (
+            <div className='mt-3 flex items-center gap-4'>
+              {/* Like button */}
               <button
-                onClick={() => setShowReplyForm(!showReplyForm)}
-                className='flex items-center gap-1 text-sm text-text-tertiary hover:text-primary-500 transition-colors'
+                onClick={handleLikeToggle}
+                disabled={isLiking}
+                className={`flex items-center gap-1 text-sm transition-colors cursor-pointer ${
+                  isLiked
+                    ? 'text-danger-500 hover:text-danger-600'
+                    : 'text-text-tertiary hover:text-danger-500'
+                } ${isLiking ? 'opacity-50 cursor-not-allowed' : ''}`}
+                aria-label={isLiked ? t('posts.unlike') : t('posts.like')}
               >
                 <svg
                   className='w-5 h-5'
-                  fill='none'
+                  fill={isLiked ? 'currentColor' : 'none'}
                   stroke='currentColor'
                   viewBox='0 0 24 24'
                 >
@@ -267,45 +372,68 @@ export function PostCard({
                     strokeLinecap='round'
                     strokeLinejoin='round'
                     strokeWidth={2}
-                    d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'
+                    d='M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z'
                   />
                 </svg>
-                <span>{t('posts.reply.button')}</span>
+                <span>{likesCount}</span>
               </button>
-            )}
 
-            {/* View replies button */}
-            {showReplies && repliesCount > 0 && (
-              <button
-                onClick={handleLoadReplies}
-                disabled={isLoadingReplies}
-                className='flex items-center gap-1 text-sm text-text-tertiary hover:text-primary-500 transition-colors'
-              >
-                <span>
-                  {showRepliesList
-                    ? t('posts.reply.hide')
-                    : t('posts.reply.view', { count: String(repliesCount) })}
-                </span>
-                {isLoadingReplies && (
-                  <div className='animate-spin rounded-full h-3 w-3 border-b border-current'></div>
-                )}
-              </button>
-            )}
-
-            {/* Delete button for owner */}
-            {isOwner && onDelete && (
-              <div className='ml-auto'>
-                <Button
-                  variant='danger'
-                  size='sm'
-                  onClick={() => onDelete(post.id)}
-                  isLoading={isDeleting}
+              {/* Reply button */}
+              {showReplies && (
+                <button
+                  onClick={() => setShowReplyForm(!showReplyForm)}
+                  className='flex items-center gap-1 text-sm text-text-tertiary hover:text-primary-500 transition-colors cursor-pointer'
                 >
-                  {t('posts.delete.button')}
-                </Button>
-              </div>
-            )}
-          </div>
+                  <svg
+                    className='w-5 h-5'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'
+                    />
+                  </svg>
+                  <span>{t('posts.reply.button')}</span>
+                </button>
+              )}
+
+              {/* View replies button */}
+              {showReplies && repliesCount > 0 && (
+                <button
+                  onClick={handleLoadReplies}
+                  disabled={isLoadingReplies}
+                  className='flex items-center gap-1 text-sm text-text-tertiary hover:text-primary-500 transition-colors cursor-pointer'
+                >
+                  <span>
+                    {showRepliesList
+                      ? t('posts.reply.hide')
+                      : t('posts.reply.view', { count: String(repliesCount) })}
+                  </span>
+                  {isLoadingReplies && (
+                    <div className='animate-spin rounded-full h-3 w-3 border-b border-current'></div>
+                  )}
+                </button>
+              )}
+
+              {/* Delete button for owner */}
+              {isOwner && onDelete && (
+                <div className='ml-auto'>
+                  <Button
+                    variant='danger'
+                    size='sm'
+                    onClick={() => onDelete(post.id)}
+                    isLoading={isDeleting}
+                  >
+                    {t('posts.delete.button')}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Reply form */}
           {showReplyForm && (
@@ -359,7 +487,11 @@ export function PostCard({
                   key={reply.id}
                   post={reply}
                   currentUserId={currentUserId}
-                  onDelete={onDelete}
+                  onDelete={(postId) => {
+                    onDelete?.(postId);
+                    // Refetch replies after a reply is deleted
+                    setTimeout(() => refetchReplies(), 500);
+                  }}
                   isReply={true}
                   showReplies={false}
                 />

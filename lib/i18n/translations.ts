@@ -110,6 +110,11 @@ const translations = {
         deleting: 'Deleting...',
         error: 'Failed to delete post',
       },
+      edit: {
+        button: 'Edit',
+        submit: 'Save',
+        error: 'Failed to update post',
+      },
       translation: {
         label: 'Translate:',
         original: 'Original',
@@ -302,6 +307,11 @@ const translations = {
         button: 'حذف',
         deleting: 'جاري الحذف...',
         error: 'فشل في حذف المنشور',
+      },
+      edit: {
+        button: 'تعديل',
+        submit: 'حفظ',
+        error: 'فشل في تحديث المنشور',
       },
       translation: {
         label: 'ترجمة:',

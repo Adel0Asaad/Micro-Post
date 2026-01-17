@@ -65,10 +65,15 @@ export function Navbar({ user, onLogout, onLanguageChange }: NavbarProps) {
                   {t.nav.myPosts}
                 </Link>
                 <div className='flex items-center gap-3 ml-4 pl-4 border-l border-border-light'>
-                  <Avatar name={user.name} size='sm' />
-                  <span className='text-sm font-medium text-text-secondary hidden sm:block'>
-                    {user.name}
-                  </span>
+                  <Link
+                    href={`/${locale}/my-posts`}
+                    className='flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer'
+                  >
+                    <Avatar name={user.name} size='sm' />
+                    <span className='text-sm font-medium text-text-secondary hidden sm:block hover:text-text-primary'>
+                      {user.name}
+                    </span>
+                  </Link>
                   <Button variant='ghost' size='sm' onClick={onLogout}>
                     {t.nav.logout}
                   </Button>
@@ -83,7 +88,7 @@ export function Navbar({ user, onLogout, onLanguageChange }: NavbarProps) {
             {/* Language Toggle */}
             <button
               onClick={handleLanguageToggle}
-              className='p-2 rounded-lg transition-colors bg-surface-foreground hover:bg-neutral-200 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500'
+              className='p-2 rounded-lg transition-colors cursor-pointer bg-surface-foreground hover:bg-neutral-200 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500'
               aria-label={t.language.toggle}
               title={localeNames[locale === 'en' ? 'ar' : 'en']}
             >

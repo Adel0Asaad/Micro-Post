@@ -85,7 +85,7 @@ export function UserCard({
         <div className='flex-1 min-w-0'>
           <Link
             href={`/${locale}/users/${user.id}/posts`}
-            className='hover:underline'
+            className='hover:underline cursor-pointer'
           >
             <h3 className='font-semibold text-text-primary truncate'>
               {user.name}

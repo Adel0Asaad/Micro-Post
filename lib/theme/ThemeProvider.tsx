@@ -101,7 +101,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const theme = useSyncExternalStore(
     subscribeToTheme,
     getThemeSnapshot,
-    getThemeServerSnapshot
+    getThemeServerSnapshot,
   );
 
   const resolvedTheme = useMemo(() => resolveTheme(theme), [theme]);
@@ -129,7 +129,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   const value = useMemo(
     () => ({ theme, resolvedTheme, setTheme, toggleTheme }),
-    [theme, resolvedTheme, setTheme, toggleTheme]
+    [theme, resolvedTheme, setTheme, toggleTheme],
   );
 
   return (
@@ -157,7 +157,7 @@ export function ThemeToggle({ className = '' }: ThemeToggleProps) {
     <button
       onClick={toggleTheme}
       className={`
-        p-2 rounded-lg transition-colors
+        p-2 rounded-lg transition-colors cursor-pointer
         bg-surface-foreground hover:bg-neutral-200 dark:hover:bg-neutral-700
         text-text-primary
         focus:outline-none focus:ring-2 focus:ring-primary-500

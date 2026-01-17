@@ -115,7 +115,7 @@ export function RegisterForm({ onSubmit, onSwitchToLogin }: RegisterFormProps) {
             <button
               type='button'
               onClick={onSwitchToLogin}
-              className='text-text-link hover:text-text-link-hover hover:underline font-medium'
+              className='text-text-link hover:text-text-link-hover hover:underline font-medium cursor-pointer'
             >
               {t('auth.register.loginLink')}
             </button>

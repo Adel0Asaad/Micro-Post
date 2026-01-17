@@ -94,7 +94,7 @@ export function Alert({
         {onClose && (
           <button
             onClick={onClose}
-            className='ml-3 -mr-1 -mt-1 p-1 rounded hover:bg-black/5 transition-colors'
+            className='ml-3 -mr-1 -mt-1 p-1 rounded hover:bg-black/5 transition-colors cursor-pointer'
           >
             <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 20 20'>
               <path

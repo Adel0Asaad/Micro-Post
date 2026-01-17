@@ -47,6 +47,12 @@ export function Navbar({ user, onLogout, onLanguageChange }: NavbarProps) {
                   {t.nav.feed}
                 </Link>
                 <Link
+                  href={`/${locale}/following`}
+                  className='text-text-secondary hover:text-text-primary font-medium'
+                >
+                  {t.nav.following}
+                </Link>
+                <Link
                   href={`/${locale}/users`}
                   className='text-text-secondary hover:text-text-primary font-medium'
                 >

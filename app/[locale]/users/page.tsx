@@ -11,7 +11,7 @@ import type { User, UsersResponse } from '@/types';
 
 export default function UsersPage() {
   const { t } = useTranslations();
-  const { isLoading: authLoading } = useAuth({ required: true });
+  const { user, isLoading: authLoading } = useAuth({ required: true });
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +51,7 @@ export default function UsersPage() {
         </Alert>
       )}
 
-      <UserList users={users} />
+      <UserList users={users} currentUserId={user?.id} />
     </PageContainer>
   );
 }

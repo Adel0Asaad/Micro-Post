@@ -6,6 +6,7 @@ const translations = {
     nav: {
       home: 'Home',
       feed: 'Feed',
+      following: 'Following',
       users: 'Users',
       myPosts: 'My Posts',
       login: 'Login',
@@ -113,6 +114,16 @@ const translations = {
         label: 'Translate:',
         original: 'Original',
       },
+      like: 'Like',
+      unlike: 'Unlike',
+      reply: {
+        button: 'Reply',
+        placeholder: 'Write a reply...',
+        submit: 'Reply',
+        error: 'Failed to post reply',
+        view: 'View {count} replies',
+        hide: 'Hide replies',
+      },
       empty: 'No posts yet. Be the first to share something!',
       myPostsEmpty:
         "You haven't posted anything yet. Share your first thought!",
@@ -123,6 +134,15 @@ const translations = {
       title: 'Feed',
       subtitle: 'See what everyone is posting',
       error: 'Failed to load feed',
+    },
+
+    // Following Feed page
+    followingFeed: {
+      title: 'Following',
+      subtitle: 'Posts from people you follow',
+      error: 'Failed to load feed',
+      empty:
+        'No posts from people you follow yet. Start following users to see their posts here!',
     },
 
     // My Posts page
@@ -138,6 +158,11 @@ const translations = {
       subtitle: 'View all users in the system',
       viewPosts: 'View Posts',
       joined: 'Joined',
+      follow: 'Follow',
+      unfollow: 'Unfollow',
+      followers: 'followers',
+      following: 'following',
+      postsCount: 'posts',
       error: 'Failed to load users',
       posts: {
         title: "{name}'s Posts",
@@ -174,6 +199,7 @@ const translations = {
     nav: {
       home: 'الرئيسية',
       feed: 'التغذية',
+      following: 'المتابَعون',
       users: 'المستخدمون',
       myPosts: 'منشوراتي',
       login: 'تسجيل الدخول',
@@ -281,6 +307,16 @@ const translations = {
         label: 'ترجمة:',
         original: 'الأصلي',
       },
+      like: 'إعجاب',
+      unlike: 'إلغاء الإعجاب',
+      reply: {
+        button: 'رد',
+        placeholder: 'اكتب رداً...',
+        submit: 'رد',
+        error: 'فشل في نشر الرد',
+        view: 'عرض {count} ردود',
+        hide: 'إخفاء الردود',
+      },
       empty: 'لا توجد منشورات بعد. كن أول من يشارك شيئاً!',
       myPostsEmpty: 'لم تنشر أي شيء بعد. شارك فكرتك الأولى!',
     },
@@ -290,6 +326,15 @@ const translations = {
       title: 'التغذية',
       subtitle: 'شاهد ما ينشره الجميع',
       error: 'فشل في تحميل التغذية',
+    },
+
+    // Following Feed page
+    followingFeed: {
+      title: 'المتابَعون',
+      subtitle: 'منشورات الأشخاص الذين تتابعهم',
+      error: 'فشل في تحميل التغذية',
+      empty:
+        'لا توجد منشورات من الأشخاص الذين تتابعهم بعد. ابدأ بمتابعة المستخدمين لرؤية منشوراتهم هنا!',
     },
 
     // My Posts page
@@ -305,6 +350,11 @@ const translations = {
       subtitle: 'عرض جميع المستخدمين في النظام',
       viewPosts: 'عرض المنشورات',
       joined: 'انضم في',
+      follow: 'متابعة',
+      unfollow: 'إلغاء المتابعة',
+      followers: 'متابعون',
+      following: 'يتابع',
+      postsCount: 'منشورات',
       error: 'فشل في تحميل المستخدمين',
       posts: {
         title: 'منشورات {name}',
@@ -341,8 +391,8 @@ const translations = {
 type DeepString<T> = T extends string
   ? string
   : T extends object
-  ? { [K in keyof T]: DeepString<T[K]> }
-  : T;
+    ? { [K in keyof T]: DeepString<T[K]> }
+    : T;
 
 export type TranslationKeys = DeepString<typeof translations.en>;
 
@@ -355,7 +405,7 @@ export function getTranslations(locale: Locale): TranslationKeys {
 export function t(
   translations: TranslationKeys,
   path: string,
-  params?: Record<string, string>
+  params?: Record<string, string>,
 ): string {
   const keys = path.split('.');
   let value: unknown = translations;

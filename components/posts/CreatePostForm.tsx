@@ -6,13 +6,9 @@ import { useTranslations } from '@/lib/i18n';
 
 interface CreatePostFormProps {
   onSubmit: (content: string) => Promise<void>;
-  maxLength?: number;
 }
 
-export function CreatePostForm({
-  onSubmit,
-  maxLength = 280,
-}: CreatePostFormProps) {
+export function CreatePostForm({ onSubmit }: CreatePostFormProps) {
   const { t } = useTranslations();
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,7 +34,7 @@ export function CreatePostForm({
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : t('posts.create.error.failed')
+        err instanceof Error ? err.message : t('posts.create.error.failed'),
       );
     } finally {
       setIsSubmitting(false);
@@ -52,8 +48,6 @@ export function CreatePostForm({
           placeholder={t('posts.create.placeholder')}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          maxLength={maxLength}
-          showCount
           rows={3}
           className='mb-4'
         />
@@ -74,7 +68,7 @@ export function CreatePostForm({
           <Button
             type='submit'
             isLoading={isSubmitting}
-            disabled={!content.trim() || content.length > maxLength}
+            disabled={!content.trim()}
           >
             {t('posts.create.submit')}
           </Button>

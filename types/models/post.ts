@@ -20,4 +20,8 @@ export interface Post {
   createdAt: string;
   user: Pick<User, 'id' | 'name' | 'email'>;
   translations?: PostTranslation[];
+  likesCount?: number;
+  repliesCount?: number;
+  isLiked?: boolean;
+  parentId?: string | null;
 }

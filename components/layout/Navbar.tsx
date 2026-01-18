@@ -69,7 +69,7 @@ export function Navbar({ user, onLogout, onLanguageChange }: NavbarProps) {
                     href={`/${locale}/my-posts`}
                     className='flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer'
                   >
-                    <Avatar name={user.name} size='sm' />
+                    <Avatar name={user.name} userId={user.id} size='sm' />
                     <span className='text-sm font-medium text-text-secondary hidden sm:block hover:text-text-primary'>
                       {user.name}
                     </span>

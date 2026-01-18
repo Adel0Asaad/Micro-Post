@@ -150,7 +150,7 @@ export default function UserPostsPage({
       {/* User Profile Header */}
       <div className='bg-surface-elevated rounded-xl shadow-sm border border-border-light p-6 mb-8'>
         <div className='flex items-center gap-4'>
-          <Avatar name={profileUser.name} size='xl' />
+          <Avatar name={profileUser.name} userId={profileUser.id} size='xl' />
           <div className='flex-1'>
             <h1 className='text-2xl font-bold text-text-primary'>
               {profileUser.name}

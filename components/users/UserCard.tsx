@@ -78,6 +78,7 @@ export function UserCard({
         <Link href={`/${locale}/users/${user.id}/posts`}>
           <Avatar
             name={user.name}
+            userId={user.id}
             size='lg'
             className='cursor-pointer hover:opacity-80 transition-opacity'
           />

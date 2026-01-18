@@ -2,11 +2,28 @@ import React from 'react';
 
 interface AvatarProps {
   name: string;
+  userId?: string | number;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
-export function Avatar({ name, size = 'md', className = '' }: AvatarProps) {
+// Simple hash function for consistent color generation
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash);
+}
+
+export function Avatar({
+  name,
+  userId,
+  size = 'md',
+  className = '',
+}: AvatarProps) {
   const initials = name
     .split(' ')
     .map((n) => n[0])
@@ -21,7 +38,7 @@ export function Avatar({ name, size = 'md', className = '' }: AvatarProps) {
     xl: 'w-16 h-16 text-lg',
   };
 
-  // Generate a consistent color based on name
+  // Generate a consistent color based on userId (or name as fallback)
   const colors = [
     'bg-blue-500',
     'bg-green-500',
@@ -32,7 +49,8 @@ export function Avatar({ name, size = 'md', className = '' }: AvatarProps) {
     'bg-red-500',
     'bg-orange-500',
   ];
-  const colorIndex = name.charCodeAt(0) % colors.length;
+  const hashSource = userId !== undefined ? String(userId) : name;
+  const colorIndex = hashString(hashSource) % colors.length;
   const bgColor = colors[colorIndex];
 
   return (

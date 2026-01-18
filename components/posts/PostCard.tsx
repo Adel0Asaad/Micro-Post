@@ -227,6 +227,7 @@ export function PostCard({
         <Link href={`/${locale}/users/${post.user.id}/posts`}>
           <Avatar
             name={post.user.name}
+            userId={post.user.id}
             size='md'
             className='cursor-pointer hover:opacity-80 transition-opacity'
           />
